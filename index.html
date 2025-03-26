@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="assents/css/index.css" />
+  <title>Yu-Gi-Oh</title>
+</head>
+
+<body>
+  <h1>Yu-Gi-Oh</h1>
+  <div class="container" id="cards-container"></div>
+  <div class="pagination">
+    <button id="prev">Voltar</button>
+    <button id="next">Proximo</button>
+  </div>
+  <script>
+    let currentPage = 1;
+    const cardsPerPage = 10
+    const container = document.getElementById("cards-container");
+    const nextButton = document.getElementById("next");
+    const prevButton = document.getElementById("prev");
+
+
+    async function getAllCards(page) {
+      try {
+        container.innerHTML = "Carregando...";
+
+        const response = await fetch(
+          `https://db.ygoprodeck.com/api/v7/cardinfo.php`
+        );
+
+        const data = await response.json();
+        const start = (page - 1) * cardsPerPage;
+        const end = start + cardsPerPage;
+        const cardsToShow = data.data.slice(start, end)
+        container.innerHTML = "";
+        console.log(data);
+        cardsToShow.forEach((carta) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+                        <img src = "${carta.card_images[0].image_url}" alt="${carta.name}">
+                        <p>${carta.name}</p>`;
+
+          card.addEventListener("click", () => {
+            window.location.href = `cards.html?id=${carta.id}`;
+          });
+
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.log("Erro ao carregar cartas", error);
+        container.innerHTML = "Erro ao carregar cartas";
+      }
+    }
+    prevButton.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        getAllCards(currentPage);
+      }
+    });
+    nextButton.addEventListener("click", () => {
+      currentPage++;
+      getAllCards(currentPage);
+    })
+    document.addEventListener("DOMContentLoaded", () => getAllCards(currentPage)
+    );
+  </script>
+</body>
+
+</html>

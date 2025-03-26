@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assents/css/card.css">
+    <title>Cards</title>
+</head>
+
+<body>
+    <h1>Card</h1>
+    <div class="container" id="cards-data"></div>
+    <div class="pagination">
+        <button id="prev">Anterior</button>
+        <button id="next">Proximo</button>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let cardId = parseInt(params.get("id")) || 1;
+        console.log(cardId);
+
+        const cardsData = document.getElementById("cards-data");
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+
+        async function getCardsData(id) {
+            try {
+                cardsData.innerHTML = "Carregando...";
+                const response = await fetch(
+                    `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${id}`
+                );
+
+                const data = await response.json();
+
+
+                if (data.error) {
+                    cardsData.innerHTML = "Carta não encontrada";
+                    return;
+                }
+
+                const card = data.data[0];
+                cardsData.innerHTML = `
+            <img src="${card.card_images[0].image_url}" alt="${card.name}">
+            <h2>${card.name}</h2>
+            <p>${card.desc}</p>
+            <p>Tipo: ${card.type}</p>
+            ${card.atk ? `<p>ATK: ${card.atk}</p>` : ''}
+            ${card.def ? `<p>DEF: ${card.def}</p>` : ''}
+        `;
+            } catch (error) {
+                console.error("Erro ao carregar carta", error);
+                cardsData.innerHTML = "Erro ao carregar a carta";
+            }
+        }
+
+        prev.addEventListener("click", () => {
+    if (cardId > 1) {
+        cardId--;
+        getCardsData(cardId);
+        window.history.pushState({}, "", `cards.html?id=${cardId}`);
+    }
+});
+
+next.addEventListener("click", () => {
+    cardId++;
+    getCardsData(cardId);
+
+    window.history.pushState({}, "", `cards.html?id=${cardId}`);
+});
+
+        document.addEventListener("DOMContentLoaded", () => getCardsData(cardId));
+    </script>
+
+
+</body>
+
+</html>
